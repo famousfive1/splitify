@@ -1,0 +1,130 @@
+openapi: 3.0.0
+
+info:
+  description: |
+    This is the expense tracking app
+  version: 1.0.0
+  title: Expense
+
+tags:
+  - name: Groups
+    description: Group management APIs
+
+paths:
+  /api/groups:
+    get:
+      tags:
+        - Groups
+      operationId: getMyGroups
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupsList"
+
+    post:
+      tags:
+        - Groups
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IGroup"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/groups/{id}:
+    parameters:
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: integer
+    get:
+      tags:
+        - Groups
+      operationId: getGroup
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    put:
+      tags:
+        - Groups
+      operationId: updateGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IGroup"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    delete:
+      tags:
+        - Groups
+      operationId: deleteGroup
+      responses:
+        "204":
+          description: Success
+        "409":
+          description: Conflict. Some Condition failed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+components:
+  schemas:
+    GroupsList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Group"
+
+    Group:
+      allOf:
+        - $ref: "#/components/schemas/IGroup"
+        - $ref: "#/components/schemas/Id"
+
+    IGroup:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    Id:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Bad request or input
