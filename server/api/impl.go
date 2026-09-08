@@ -31,11 +31,6 @@ func (Server) CreateGroup(c *gin.Context) {
 		return
 	}
 
-	if input.Name == "" {
-		c.String(http.StatusBadRequest, "No name provided")
-		return
-	}
-
 	c.JSON(http.StatusOK, Group{
 		Id: 12,
 		Name: input.Name,
