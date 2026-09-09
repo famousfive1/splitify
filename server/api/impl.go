@@ -1,16 +1,23 @@
 package api
 
 import (
+	"expense/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 
-type Server struct{}
+type Server struct{
+	authService service.AuthService
+	groupService service.GroupService
+}
 
-func NewServer() *Server {
-	return &Server{}
+func NewServer(authService service.AuthService, groupService service.GroupService) *Server {
+	return &Server{
+		authService: authService,
+		groupService: groupService,
+	}
 }
 
 var _ ServerInterface = (*Server)(nil)
@@ -23,10 +30,7 @@ func (h *Server) Login(c *gin.Context) {
 
 // (GET /api/groups)
 func (h *Server) GetMyGroups(c *gin.Context) {
-	c.JSON(http.StatusOK, GroupsList{
-		{12, "asdf"},
-		{42, "universe"},
-	})
+	c.String(http.StatusNotImplemented, "Not Implemented")
 }
 
 // (POST /api/groups)
@@ -37,8 +41,14 @@ func (h *Server) CreateGroup(c *gin.Context) {
 		return
 	}
 
+	id, err := h.groupService.Create(input.Name)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error while creating group")
+		return
+	}
+
 	c.JSON(http.StatusOK, Group{
-		Id: 12,
+		Id: id,
 		Name: input.Name,
 	})
 }
@@ -50,7 +60,15 @@ func (h *Server) DeleteGroup(c *gin.Context, id int) {
 
 // (GET /api/groups/{id})
 func (h *Server) GetGroup(c *gin.Context, id int) {
-	c.String(http.StatusNotImplemented, "Not Implemented")
+	out, err := h.groupService.Get(id)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Cannot get group")
+	}
+
+	c.JSON(http.StatusOK, Group{
+		Id: out.Id,
+		Name: out.Name,
+	})
 }
 
 // (PUT /api/groups/{id})

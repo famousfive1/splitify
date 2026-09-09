@@ -2,6 +2,7 @@ package main
 
 import (
 	"expense/api"
+	"expense/service"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,8 +29,11 @@ func main() {
 	}
 	r.Use(mw)
 
+	authService := service.NewAuthService()
+	groupService := service.NewGroupService()
+
 	// create a type that satisfies the `api.ServerInterface`, which contains an implementation of every operation from the generated code
-	server := api.NewServer()
+	server := api.NewServer(authService, groupService)
 	api.RegisterHandlers(r, server)
 
 	// And we serve HTTP until the world ends.
