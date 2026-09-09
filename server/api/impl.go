@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"expense/service"
+	"fmt"
 	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -23,7 +24,20 @@ func NewServer(authService service.AuthService, groupService service.GroupServic
 	}
 }
 
-func NewAuthenticator(authService service.AuthService) openapi3filter.AuthenticationFunc {
+func (h Server) CreateMiddleware() (gin.HandlerFunc, error) {
+	spec, err := GetSpec()
+	if err != nil {
+		return nil, fmt.Errorf("loading spec: %w", err)
+	}
+
+	return middleware.OapiRequestValidatorWithOptions(spec, &middleware.Options{
+		Options: openapi3filter.Options{
+			AuthenticationFunc: newAuthenticator(h.authService),
+		},
+	}), nil
+}
+
+func newAuthenticator(authService service.AuthService) openapi3filter.AuthenticationFunc {
 	return func(ctx context.Context, input *openapi3filter.AuthenticationInput) error {
 		return authenticate(authService, ctx, input)
 	}
