@@ -7,17 +7,17 @@ type GroupService interface {
 	Get(int) (model.Group, error)
 }
 
-type service struct {}
+type groupService struct {}
 
 func NewGroupService() GroupService {
-	return service{}
+	return &groupService{}
 }
 
-func (h service) Create(name string) (int, error) {
+func (h *groupService) Create(name string) (int, error) {
 	return 12, nil
 }
 
-func (h service) Get(id int) (model.Group, error) {
+func (h *groupService) Get(id int) (model.Group, error) {
 	return model.Group{ Id: id, Name: "some" }, nil
 }
 

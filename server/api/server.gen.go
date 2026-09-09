@@ -32,10 +32,19 @@ type IGroup struct {
 	Name string `json:"name"`
 }
 
+// ILogin defines model for ILogin.
+type ILogin struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+
 // Id defines model for Id.
 type Id struct {
 	Id int `json:"id"`
 }
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody = ILogin
 
 // CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
 type CreateGroupJSONRequestBody = IGroup
@@ -45,6 +54,9 @@ type UpdateGroupJSONRequestBody = IGroup
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (POST /api/auth/login)
+	Login(c *gin.Context)
 
 	// (GET /api/groups)
 	GetMyGroups(c *gin.Context)
@@ -70,6 +82,19 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Login(c)
+}
 
 // GetMyGroups operation middleware
 func (siw *ServerInterfaceWrapper) GetMyGroups(c *gin.Context) {
@@ -199,6 +224,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.POST(options.BaseURL+"/api/auth/login", wrapper.Login)
 	router.GET(options.BaseURL+"/api/groups", wrapper.GetMyGroups)
 	router.POST(options.BaseURL+"/api/groups", wrapper.CreateGroup)
 	router.DELETE(options.BaseURL+"/api/groups/:id", wrapper.DeleteGroup)
@@ -211,15 +237,19 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7FRPj9M+EP0q1vx+R6sJsBdyYwtaVQKBWDgtPZh4ms6S2MaeIKoq3x3ZzvbPpl2QFg5InBLbM89v3jzP",
-	"FmrbOWvQcIBqCx6DsyZgWlwq/R6/9hg4rjSG2pNjsgaqeCZ8PhTWCzKuZxgGCaFeY6dS/pW3vYs/qm3f",
-	"rqC62cL/HldQwX/F/tpizCgWOX6QPwnTMCwHmdHDa8rsiLFLlz6UencB8MYhVKC8V5u4XuyoOm8deqas",
-	"gFEdxu8YH9iTaVKZsXbyqKG6yVHLHar9fIs1J1g9hSR9AEiGsUE/QSR9Ai8GkVnZaTM+rCkICoLXKPC7",
-	"QxNQsFf1FzKNUM59MiCBidsI9yoHgIRv6EMGeDIrZ2VkbB0a5QgqeJa2JDjF60S8UI6KJokelw0m3WNp",
-	"KtKItcIV8ptNbgzIYzM9Lcv4qa1hNClVOddSnZKL2xB5bEf3/FIfc+uTKsdqXPd1jSEkUVk1IQo6coq+",
-	"cTacYD73qBhTGOReYOBLqze/jfSdvY97zb7H4U9L9aBKEi7K8hzMjldxMAxOCjvIQ4cUW9JDNmqLjFO9",
-	"X6b9vd5H5V9MLf4YujHl+RRybs2qpZpn4tp2KObWaIpHYqWoRX3OP+eMf6aWv7CV8dF71SGjD2lqU7wl",
-	"DgKQ40iME+q+jeVBHZP5tpTg+hPCfXT637t71Lvbb943eIoRnTKqwQ4NixfvFmHfwhFiWA4/BgA=",
+	"7Fbfb9MwEP5XLMNjWLofL7Taw1bQmBjaROGpVMhLrom3xDb2BVZV+d/R2VnTNuk2wfaAxNPm+O7z3fd9",
+	"PnfJE10arUCh48Mlt+CMVg784lSkn+FHBQ5plYJLrDQoteJD2mM2bDJtmVSmQl7XEXdJDqXw+WdWV4b+",
+	"EUVxOefD6ZK/tjDnQ/4qbo+Nm4z4PMTX0SNhKa9ndRTQ3YUM1UmE0h/6UOr9ARwXBviQC2vFgtbnq1KN",
+	"1QYsysCAEiXQ3ybeoZUq821S79JCyofTEDVboerrG0jQw17oTKourBHO/dI27YGOeOXAPu3cVWTUIvaW",
+	"kXZLkOuHS4WQge0cIPvwSGNIKitxMSFeA54D56RWY61vpS+d+uZJWEYNkfdR32XKWxGM/AgLXhOwVHPd",
+	"9dqXXDomHcMcGNwZUA4YWpHcSpUxYcw3RWgSC4J7HwJ4xH+CdQFgf2+wNyAmtAEljORDfug/EXGY+wZi",
+	"YWQsKszjYiWaDt4i3gTVQkTyoGkgChye6nRBQYlWCMrHC2MKmfiM+MZpjxUs+JhBG8PUm0KgraCONu/m",
+	"wWDQJWpSJQk4xyOeg0jB+sgJ4JtWlq2EoAdb6eSSvARfJtyJ0hSboh2L62T/4HDEPiCaS1UsRmxCVoAR",
+	"m4gSJhLh+ELcjdiVwPw45lHHwNTY0WCwi4dVi/Ha7KEcFJkjR55UmPMZffF6ZX4GEFoGPVKdAX5ahDnB",
+	"+/l7FtXWJpFvsF+U9TaammiM9ZtsbEEg+LCXslozDJ9steej6kGW/s4fa8TeDyn/7myNp+msnm16KF7K",
+	"tA4XpACEriLv/PdWkQ2CjnbfxT9piFLediHHWs0LmeAem+gS2FirVNIWmwtZQLqLiF1XY0cv/6TYRlhR",
+	"AvqRN20eHxrt7dPjn5xNo0drfXRewlnETdVD3FeT/r+ZL3wz27TtK+BRWCmUyKAEhezk6ty1IjeH1NF2",
+	"Hr0boLChZiuLNuk35e8BAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

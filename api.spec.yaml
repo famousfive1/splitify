@@ -9,9 +9,37 @@ info:
 tags:
   - name: Groups
     description: Group management APIs
+  - name: Auth
+    description: Authentication APIs
 
 paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ILogin"
+      responses:
+        "200":
+          description: Success
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schmea:
+                type: string
+                example: session_id=abc123; HttpOnly; Secure; SameSite=Lax; Path=/
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
   /api/groups:
+    security:
+      - sessionCookie: []
+
     get:
       tags:
         - Groups
@@ -45,6 +73,9 @@ paths:
           $ref: "#/components/responses/BadRequest"
 
   /api/groups/{id}:
+    security:
+      - sessionCookie: []
+
     parameters:
       - name: id
         required: true
@@ -98,7 +129,24 @@ paths:
           $ref: "#/components/responses/BadRequest"
 
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session_id
+
   schemas:
+    ILogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
     GroupsList:
       type: array
       items:
