@@ -7,33 +7,41 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
 	middleware "github.com/oapi-codegen/gin-middleware"
 )
 
-func createMiddleware() (gin.HandlerFunc, error) {
+func createMiddleware(authService service.AuthService) (gin.HandlerFunc, error) {
 	spec, err := api.GetSpec()
 	if err != nil {
 		return nil, fmt.Errorf("loading spec: %w", err)
 	}
 
-	return middleware.OapiRequestValidator(spec), nil
+	return middleware.OapiRequestValidatorWithOptions(spec, &middleware.Options{
+		Options: openapi3filter.Options{
+			AuthenticationFunc: api.NewAuthenticator(authService),
+		},
+	}), nil
 }
 
 func main() {
+	// Services
+	authService := service.NewAuthService()
+	groupService := service.NewGroupService()
+
+	// API Server handler
+	server := api.NewServer(authService, groupService)
+
     r := gin.Default()
 
-	mw, err := createMiddleware()
+	mw, err := createMiddleware(authService)
 	if err != nil {
 		log.Fatalln("error creating middleware:", err)
 	}
 	r.Use(mw)
 
-	authService := service.NewAuthService()
-	groupService := service.NewGroupService()
-
 	// create a type that satisfies the `api.ServerInterface`, which contains an implementation of every operation from the generated code
-	server := api.NewServer(authService, groupService)
 	api.RegisterHandlers(r, server)
 
 	// And we serve HTTP until the world ends.

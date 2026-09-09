@@ -15,6 +15,7 @@ tags:
 paths:
   /api/auth/login:
     post:
+      security: []
       tags:
         - Auth
       operationId: login
@@ -30,16 +31,15 @@ paths:
           headers:
             Set-Cookie:
               description: Session cookie
-              schmea:
+              schema:
                 type: string
-                example: session_id=abc123; HttpOnly; Secure; SameSite=Lax; Path=/
+                example: session_id=abc123; HttpOnly; Secure; SameSite=Lax; Path=/secur
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /api/groups:
-    security:
-      - sessionCookie: []
-
     get:
       tags:
         - Groups
@@ -51,6 +51,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupsList"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
     post:
       tags:
@@ -71,11 +73,10 @@ paths:
                 $ref: "#/components/schemas/Group"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /api/groups/{id}:
-    security:
-      - sessionCookie: []
-
     parameters:
       - name: id
         required: true
@@ -95,6 +96,8 @@ paths:
                 $ref: "#/components/schemas/Group"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
     put:
       tags:
@@ -115,6 +118,8 @@ paths:
                 $ref: "#/components/schemas/Group"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
     delete:
       tags:
@@ -127,6 +132,8 @@ paths:
           description: Conflict. Some Condition failed
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   securitySchemes:
@@ -176,3 +183,9 @@ components:
   responses:
     BadRequest:
       description: Bad request or input
+    InternalServerError:
+      description: Something went wrong with the server
+
+security:
+  - sessionCookie: []
+

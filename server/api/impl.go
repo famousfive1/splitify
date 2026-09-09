@@ -1,10 +1,13 @@
 package api
 
 import (
+	"context"
 	"expense/service"
 	"net/http"
 
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
+	middleware "github.com/oapi-codegen/gin-middleware"
 )
 
 
@@ -20,11 +23,55 @@ func NewServer(authService service.AuthService, groupService service.GroupServic
 	}
 }
 
+func NewAuthenticator(authService service.AuthService) openapi3filter.AuthenticationFunc {
+	return func(ctx context.Context, input *openapi3filter.AuthenticationInput) error {
+		return authenticate(authService, ctx, input)
+	}
+}
+
+func authenticate(authService service.AuthService, ctx context.Context, input *openapi3filter.AuthenticationInput) error {
+	cook, err := input.RequestValidationInput.Request.Cookie("session_id")
+	if err != nil {
+		return err
+	}
+
+	userId, err := authService.Verify(cook.Value)
+	if err != nil {
+		return err
+	}
+
+	middleware.GetGinContext(ctx).Set("auth_user_id", userId)
+
+	return nil
+}
+
+
 var _ ServerInterface = (*Server)(nil)
 
 // (POST /api/auth/login)
 func (h *Server) Login(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "Not Implemented")
+	var input LoginJSONRequestBody
+	if err := c.Bind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Cannot parse JSON")
+		return
+	}
+
+	token, err := h.authService.Login(input.Username, input.Password)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error while logging in")
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(
+		"session_id",
+		token,
+		60*60*24*3,
+		"/api",
+		"",
+		true,
+		true,
+	)
+	c.Status(http.StatusOK)
 }
 
 
