@@ -1,0 +1,85 @@
+package api
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+var _ ServerInterface = (*Server)(nil)
+
+// (POST /api/auth/login)
+func (h *Server) Login(c *gin.Context) {
+	var input LoginJSONRequestBody
+	if err := c.Bind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Cannot parse JSON")
+		return
+	}
+
+	token, err := h.authService.Login(input.Username, input.Password)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error while logging in")
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(
+		"session_id",
+		token,
+		60*60*24*3,
+		"/api",
+		"",
+		true,
+		true,
+	)
+	c.Status(http.StatusOK)
+}
+
+
+// (GET /api/groups)
+func (h *Server) GetMyGroups(c *gin.Context) {
+	c.String(http.StatusNotImplemented, "Not Implemented")
+}
+
+// (POST /api/groups)
+func (h *Server) CreateGroup(c *gin.Context) {
+	var input CreateGroupJSONRequestBody
+	if err := c.Bind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Cannot parse JSON")
+		return
+	}
+
+	id, err := h.groupService.Create(input.Name)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error while creating group")
+		return
+	}
+
+	c.JSON(http.StatusOK, Group{
+		Id: id,
+		Name: input.Name,
+	})
+}
+
+// (DELETE /api/groups/{id})
+func (h *Server) DeleteGroup(c *gin.Context, id int) {
+	c.String(http.StatusNotImplemented, "Not Implemented")
+}
+
+// (GET /api/groups/{id})
+func (h *Server) GetGroup(c *gin.Context, id int) {
+	out, err := h.groupService.Get(id)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Cannot get group")
+	}
+
+	c.JSON(http.StatusOK, Group{
+		Id: out.Id,
+		Name: out.Name,
+	})
+}
+
+// (PUT /api/groups/{id})
+func (h *Server) UpdateGroup(c *gin.Context, id int) {
+	c.String(http.StatusNotImplemented, "Not Implemented")
+}
+
