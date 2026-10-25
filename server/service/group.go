@@ -4,6 +4,7 @@ import (
 	"expense/db"
 )
 
+// TODO: Implement Update and Delete for groups
 type GroupService interface {
 	Create(string) (int, error)
 	Get(int) (db.Group, error)

@@ -11,6 +11,7 @@ type SqliteDB struct {
 	Group GroupRepo
 }
 
+// TODO: Use context in all repos to manage timeout and such
 func NewDB() (*SqliteDB, error) {
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {

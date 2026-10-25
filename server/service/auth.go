@@ -2,6 +2,7 @@ package service
 
 import "fmt"
 
+// TODO: Actually implement
 type AuthService interface {
 	Login(username string, password string) (string, error)
 	Verify(token string) (int, error)
