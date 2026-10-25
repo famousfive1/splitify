@@ -3,6 +3,7 @@ package main
 import (
 	"expense/api"
 	"expense/service"
+	"expense/db"
 	"log"
 	"net/http"
 
@@ -10,9 +11,15 @@ import (
 )
 
 func main() {
+	// DB
+	db, err := db.NewDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Services
 	authService := service.NewAuthService()
-	groupService := service.NewGroupService()
+	groupService := service.NewGroupService(db.Group)
 
 	// API Server handler
 	server := api.NewServer(authService, groupService)

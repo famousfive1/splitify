@@ -70,6 +70,7 @@ func (h *Server) GetGroup(c *gin.Context, id int) {
 	out, err := h.groupService.Get(id)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Cannot get group")
+		return
 	}
 
 	c.JSON(http.StatusOK, Group{

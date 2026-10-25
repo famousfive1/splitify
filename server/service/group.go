@@ -1,23 +1,29 @@
 package service
 
-import "expense/model"
+import (
+	"expense/db"
+)
 
 type GroupService interface {
 	Create(string) (int, error)
-	Get(int) (model.Group, error)
+	Get(int) (db.Group, error)
 }
 
-type groupService struct {}
+type groupService struct {
+	groupRepo db.GroupRepo
+}
 
-func NewGroupService() GroupService {
-	return &groupService{}
+func NewGroupService(groupRepo db.GroupRepo) GroupService {
+	return &groupService{
+		groupRepo: groupRepo,
+	}
 }
 
 func (h *groupService) Create(name string) (int, error) {
-	return 12, nil
+	return h.groupRepo.Insert(name)
 }
 
-func (h *groupService) Get(id int) (model.Group, error) {
-	return model.Group{ Id: id, Name: "some" }, nil
+func (h *groupService) Get(id int) (db.Group, error) {
+	return h.groupRepo.Select(id)
 }
 

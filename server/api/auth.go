@@ -29,6 +29,7 @@ func newAuthenticator(authService service.AuthService) openapi3filter.Authentica
 	}
 }
 
+// TODO: Return better errors
 func authenticate(authService service.AuthService, ctx context.Context, input *openapi3filter.AuthenticationInput) error {
 	cook, err := input.RequestValidationInput.Request.Cookie("session_id")
 	if err != nil {
