@@ -1,11 +1,9 @@
 package service
 
-import "fmt"
-
-// TODO: Actually implement
+// TODO: [XL] Actually implement auth service with callouts to hashing and DB
 type AuthService interface {
 	Login(username string, password string) (string, error)
-	Verify(token string) (int, error)
+	Verify(token string) (bool, int, error)
 }
 
 type authService struct {}
@@ -18,9 +16,9 @@ func (h *authService) Login(username string, password string) (string, error) {
 	return "token", nil
 }
 
-func (h *authService) Verify(token string) (int, error) {
+func (h *authService) Verify(token string) (bool, int, error) {
 	if token == "token" {
-		return 66, nil
+		return true, 66, nil
 	}
-	return -1, fmt.Errorf("Invliad session ID")
+	return false, -1, nil
 }

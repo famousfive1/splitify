@@ -10,6 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+ERRORS are supposed to be used for ERRORS, not for known invalid states or data
+TODO: [L] Update return types to not return errors for known invalid handled cases
+*/
+
 func main() {
 	// DB
 	db, err := db.NewDB()

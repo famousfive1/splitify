@@ -29,16 +29,27 @@ func newAuthenticator(authService service.AuthService) openapi3filter.Authentica
 	}
 }
 
-// TODO: Return better errors
 func authenticate(authService service.AuthService, ctx context.Context, input *openapi3filter.AuthenticationInput) error {
 	cook, err := input.RequestValidationInput.Request.Cookie("session_id")
 	if err != nil {
-		return err
+		c := middleware.GetGinContext(ctx)
+		c.String(401, "Cannot find cookie 'session_id'")
+		c.Abort()
+		return nil
 	}
 
-	userId, err := authService.Verify(cook.Value)
+	valid, userId, err := authService.Verify(cook.Value)
 	if err != nil {
-		return err
+		c := middleware.GetGinContext(ctx)
+		c.String(500, "Failure when validating 'session_id'")
+		c.Abort()
+		return nil
+	}
+	if !valid {
+		c := middleware.GetGinContext(ctx)
+		c.String(401, "Invalid 'session_id'")
+		c.Abort()
+		return nil
 	}
 
 	middleware.GetGinContext(ctx).Set("auth_user_id", userId)

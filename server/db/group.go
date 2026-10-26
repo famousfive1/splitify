@@ -12,7 +12,10 @@ type groupRepo struct {
 }
 
 func newGroupRepo(db *sql.DB) (GroupRepo, error) {
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS user_group(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);")
+	ctx, cancel := getStandardContext()
+	defer cancel()
+
+	_, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS user_group(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);")
 	if err != nil {
 		return nil, err
 	}
@@ -22,8 +25,11 @@ func newGroupRepo(db *sql.DB) (GroupRepo, error) {
 }
 
 func (h *groupRepo) Select(id int) (Group, error) {
+	ctx, cancel := getStandardContext()
+	defer cancel()
+
 	var ans Group
-	err := h.db.QueryRow("SELECT id, name FROM user_group WHERE id = $1", id).Scan(&ans.Id, &ans.Name)
+	err := h.db.QueryRowContext(ctx, "SELECT id, name FROM user_group WHERE id = $1", id).Scan(&ans.Id, &ans.Name)
 	if err != nil {
 		return Group{}, err
 	}
@@ -31,9 +37,12 @@ func (h *groupRepo) Select(id int) (Group, error) {
 }
 
 func (h *groupRepo) Insert(name string) (int, error) {
+	ctx, cancel := getStandardContext()
+	defer cancel()
+
 	var id int
 	query := "INSERT INTO user_group(name) VALUES($1) RETURNING id"
-	err := h.db.QueryRow(query, name).Scan(&id)
+	err := h.db.QueryRowContext(ctx, query, name).Scan(&id)
 
 	if err != nil {
 		return -1, err

@@ -1,7 +1,9 @@
 package db
 
 import (
+	"context"
 	"database/sql"
+	"time"
 
 	_ "github.com/glebarez/go-sqlite"
 )
@@ -11,7 +13,10 @@ type SqliteDB struct {
 	Group GroupRepo
 }
 
-// TODO: Use context in all repos to manage timeout and such
+func getStandardContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 3 * time.Second)
+}
+
 func NewDB() (*SqliteDB, error) {
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
