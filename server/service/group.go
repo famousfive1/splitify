@@ -4,10 +4,11 @@ import (
 	"expense/db"
 )
 
-// TODO: [M] Implement Update and Delete for groups
 type GroupService interface {
 	Create(string) (int, error)
 	Get(int) (db.Group, error)
+	Delete(int) (bool, error)
+	Update(int, string) (bool, db.Group, error)
 }
 
 type groupService struct {
@@ -28,3 +29,16 @@ func (h *groupService) Get(id int) (db.Group, error) {
 	return h.groupRepo.Select(id)
 }
 
+func (h *groupService) Delete(id int) (bool, error) {
+	return h.groupRepo.Delete(id)
+}
+
+func (h *groupService) Update(id int, name string) (bool, db.Group, error) {
+	out := db.Group{
+		Id: id,
+		Name: name,
+	}
+
+	success, err := h.groupRepo.Update(out)
+	return success, out, err
+}

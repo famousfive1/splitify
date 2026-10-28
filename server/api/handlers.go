@@ -67,7 +67,17 @@ func (h *Server) CreateGroup(c *gin.Context) {
 
 // (DELETE /api/groups/{id})
 func (h *Server) DeleteGroup(c *gin.Context, id int) {
-	c.String(http.StatusNotImplemented, "Not Implemented")
+	out, err := h.groupService.Delete(id)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Cannot delete group")
+		return
+	}
+
+	if out {
+		c.Status(http.StatusOK)
+	} else {
+		c.Status(http.StatusBadRequest)
+	}
 }
 
 // (GET /api/groups/{id})
@@ -86,6 +96,25 @@ func (h *Server) GetGroup(c *gin.Context, id int) {
 
 // (PUT /api/groups/{id})
 func (h *Server) UpdateGroup(c *gin.Context, id int) {
-	c.String(http.StatusNotImplemented, "Not Implemented")
+	var input UpdateGroupJSONRequestBody
+	if err := c.Bind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Cannot parse JSON")
+		return
+	}
+
+	success, group, err := h.groupService.Update(id, input.Name)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error while updating group")
+		return
+	}
+
+	if success {
+		c.JSON(http.StatusOK, Group{
+			Id: group.Id,
+			Name: group.Name,
+		})
+	} else {
+		c.Status(http.StatusBadRequest)
+	}
 }
 
