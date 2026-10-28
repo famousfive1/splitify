@@ -16,9 +16,14 @@ func (h *Server) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.authService.Login(input.Username, input.Password)
+	success, token, err := h.authService.Login(input.Username, input.Password)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Error while logging in")
+	}
+
+	if !success {
+		c.String(http.StatusBadRequest, "Wrong username or password")
+		return
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)

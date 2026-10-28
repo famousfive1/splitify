@@ -4,6 +4,7 @@ import (
 	"context"
 	"expense/service"
 	"fmt"
+	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ import (
 func (h Server) CreateMiddleware() (gin.HandlerFunc, error) {
 	spec, err := GetSpec()
 	if err != nil {
-		return nil, fmt.Errorf("loading spec: %w", err)
+		return nil, fmt.Errorf("Error loading spec: %w", err)
 	}
 
 	return middleware.OapiRequestValidatorWithOptions(spec, &middleware.Options{
@@ -33,7 +34,7 @@ func authenticate(authService service.AuthService, ctx context.Context, input *o
 	cook, err := input.RequestValidationInput.Request.Cookie("session_id")
 	if err != nil {
 		c := middleware.GetGinContext(ctx)
-		c.String(401, "Cannot find cookie 'session_id'")
+		c.String(http.StatusUnauthorized, "Cannot find cookie 'session_id'")
 		c.Abort()
 		return nil
 	}
@@ -41,13 +42,13 @@ func authenticate(authService service.AuthService, ctx context.Context, input *o
 	valid, userId, err := authService.Verify(cook.Value)
 	if err != nil {
 		c := middleware.GetGinContext(ctx)
-		c.String(500, "Failure when validating 'session_id'")
+		c.String(http.StatusInternalServerError, "Failure when validating 'session_id'")
 		c.Abort()
 		return nil
 	}
 	if !valid {
 		c := middleware.GetGinContext(ctx)
-		c.String(401, "Invalid 'session_id'")
+		c.String(http.StatusUnauthorized, "Invalid 'session_id'")
 		c.Abort()
 		return nil
 	}
