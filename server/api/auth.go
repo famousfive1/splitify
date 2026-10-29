@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"expense/service"
+	"splitify/service"
 	"fmt"
 	"net/http"
 

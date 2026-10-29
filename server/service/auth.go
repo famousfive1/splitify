@@ -1,7 +1,7 @@
 package service
 
 import (
-	"expense/db"
+	"splitify/db"
 
 	"golang.org/x/crypto/bcrypt"
 )

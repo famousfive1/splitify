@@ -1,4 +1,4 @@
-module expense
+module splitify
 
 go 1.27.0
 

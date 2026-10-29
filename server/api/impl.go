@@ -1,7 +1,7 @@
 package api
 
 import (
-	"expense/service"
+	"splitify/service"
 )
 
 type Server struct{

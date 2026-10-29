@@ -1,9 +1,9 @@
 package main
 
 import (
-	"expense/api"
-	"expense/service"
-	"expense/db"
+	"splitify/api"
+	"splitify/service"
+	"splitify/db"
 	"log"
 	"net/http"
 
