@@ -22,7 +22,7 @@ func main() {
 	}
 
 	// Services
-	authService := service.NewAuthService()
+	authService := service.NewAuthService(db.Login)
 	groupService := service.NewGroupService(db.Group)
 
 	// API Server handler

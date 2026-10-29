@@ -11,6 +11,7 @@ import (
 type SqliteDB struct {
 	db *sql.DB
 	Group GroupRepo
+	Login LoginRepo
 }
 
 func getStandardContext() (context.Context, context.CancelFunc) {
@@ -28,8 +29,14 @@ func NewDB() (*SqliteDB, error) {
 		return nil, err
 	}
 
+	lr, err := newLoginRepo(db)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SqliteDB {
 		db: db,
 		Group: gr,
+		Login: lr,
 	}, nil
 }

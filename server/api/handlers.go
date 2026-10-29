@@ -8,6 +8,28 @@ import (
 
 var _ ServerInterface = (*Server)(nil)
 
+// (POST /api/auth/register)
+func (h *Server) Register(c *gin.Context) {
+	var input RegisterJSONRequestBody
+	if err := c.Bind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Cannot parse JSON")
+		return
+	}
+
+	success, err := h.authService.Register(input.Username, input.Password)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error while registering")
+		return
+	}
+
+	if !success {
+		c.String(http.StatusBadRequest, "Cannot register")
+		return
+	}
+
+	c.String(http.StatusOK, "Success")
+}
+
 // (POST /api/auth/login)
 func (h *Server) Login(c *gin.Context) {
 	var input LoginJSONRequestBody
@@ -19,6 +41,7 @@ func (h *Server) Login(c *gin.Context) {
 	success, token, err := h.authService.Login(input.Username, input.Password)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Error while logging in")
+		return
 	}
 
 	if !success {

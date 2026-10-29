@@ -38,6 +38,12 @@ type ILogin struct {
 	Username string `json:"username"`
 }
 
+// IRegister defines model for IRegister.
+type IRegister struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+
 // Id defines model for Id.
 type Id struct {
 	Id int `json:"id"`
@@ -45,6 +51,9 @@ type Id struct {
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = ILogin
+
+// RegisterJSONRequestBody defines body for Register for application/json ContentType.
+type RegisterJSONRequestBody = IRegister
 
 // CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
 type CreateGroupJSONRequestBody = IGroup
@@ -57,6 +66,9 @@ type ServerInterface interface {
 
 	// (POST /api/auth/login)
 	Login(c *gin.Context)
+
+	// (POST /api/auth/register)
+	Register(c *gin.Context)
 
 	// (GET /api/groups)
 	GetMyGroups(c *gin.Context)
@@ -94,6 +106,19 @@ func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
 	}
 
 	siw.Handler.Login(c)
+}
+
+// Register operation middleware
+func (siw *ServerInterfaceWrapper) Register(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Register(c)
 }
 
 // GetMyGroups operation middleware
@@ -224,6 +249,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.POST(options.BaseURL+"/api/auth/register", wrapper.Register)
 	router.POST(options.BaseURL+"/api/auth/login", wrapper.Login)
 	router.GET(options.BaseURL+"/api/groups", wrapper.GetMyGroups)
 	router.POST(options.BaseURL+"/api/groups", wrapper.CreateGroup)
@@ -237,20 +263,20 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7FZRb9s2EP4rxG2PWuS22cNk5KH1ii5Yhhbz9uQZAyudJbYSyZGnJoah/z4cqVi2JS/B1mwP65NN8e54",
-	"930f77iD3DTWaNTkIduBQ2+N9hgWr2TxM/7RoideFehzpywpoyHjPeHipjBOKG1bgi6Ba03otKyX6D6h",
-	"e+2ccWPnpWmQKqVLcYuaxK0z/FdRJahC4YMrdF0CPq+wkSGZN860lv/Iun67gWy1g68dbiCDr9KhhrT3",
-	"SK+jfZc8YFZAt+6SGN3fqFiqImzCoX/len8A0NYiZCCdk9sAwT5V64xFRyrCqWWD/Nvbe3JKl6FMBlI5",
-	"LCBbRav1Pqp5/wHziOyNKZUeh7XS+1vjionQCbQe3ePO3VsmQ8TJNIpxCurwcKUJS3SjA9RUPOYY89Yp",
-	"2i4Z1xjPo/fK6IUxH1VIneuGPC6THsh7q99VAQMJVv2IW+g4sNIbM9beL5XyQvmgNLyzqD0KcjL/yHKU",
-	"1v6mOZqimsO9jgaQwCd0PgZ4djG7mDESxqKWVkEGL8InBo6qUEAqrUplS1Va70kzUVuMm+RcGEiInEag",
-	"0NMrU2zZKDeaUAd7aW2t8uCRfvAmxIoSfEigvWC6YyLItdglxxf9+Ww2cUnbPEfvIYEKZYEuWC6Rvhlo",
-	"OXGIfIg9T0OaeCcbWx+TdiXf58+ev5iLH4jsW11v52LJUsC5WMoGl4rw6kbezcU7SdVVGmQCyUjFXN3l",
-	"bHYOjH2d6UE36xL49jEuU83sULKQrVjSsvQs8JctVbDm/UB/GVoKH1LiBPNvkH7axrYD03R8FhEcNLYA",
-	"1TTH/xSQewj6erijTut94VASBrOnUn3flx+t+s8H8wMI/9sqHZFyrMx0p4ou3uIaCcdcfR++D1wdQXd5",
-	"vmH8vVIvZ9+NQy6M3tQqpwvBTwaxMLpQvCU2UtVYPIVuz13WMzj8zyTEM87JBinMg1U/mXnuDXM5zOPj",
-	"q3c4C0bPhHUCtp0A/VdbfOkV/1mvOB5zozfZat0No+/02oYoopFaltjwC//lu2s/CKQ/pEtO/XiCoqYe",
-	"1hMv3uTH+p8DAA==",
+	"7FdRb9s2EP4rxG2PWuS22cMU5KHNii5Yhhb19uQZAyudJbYSyZGnJkag/z4cqUi2JS8BmqwDtidb4t1H",
+	"3nff8U63kJvGGo2aPGS34NBboz2Gh1eyeI9/tuiJnwr0uVOWlNGQ8ZpwcVEYJ5S2LUGXwKUmdFrWS3Sf",
+	"0b12zrip89I0SJXSpbhGTeLaGf6rqBJUofDBFbouAZ9X2MhwmDfOtJb/yLp+u4FsdQvfOtxABt+kYwxp",
+	"75FeRvsuucesgG7dJRHdX6kYqiJswqZ/53q3AdDWImQgnZPbQMFwVOuMRUcq0qllg/zb23tySpchTCZS",
+	"OSwgW0Wr9YBqPnzEPDJ7ZUqlp7BWen9tXDEDnUDr0T1s38EyGRFnj/EeS+UJ3dc/STE9gtrdXGnCEt1k",
+	"AzWHx2rDvHWKtkvOcMTz6L0y+sKYTyocnTMAeXxM+pTeWf2hChjlYNXPuIWOgZXemGkV/FopL5QPmscb",
+	"i9qjICfzT1wY0trfNaMpqhnudTSABD6j8xHg2cniZMFMGItaWgUZvAivmDiqQgCptCqVLVVpPcjHRJUz",
+	"b5LPwkRCVFckCj29MsWWjXKjCXWwl9bWKg8e6UdvAlYshvtKpZdut58Ici12yf6V83yxmLku2jxH7yGB",
+	"CmWBLlgukb4b03LgEPMhhjyNx8Qb2dh6P2nn8kP+7PmLM/ETkX2r6+2ZWLIU8EwsZYNLRXh+JW/OxDtJ",
+	"1XkaZALJRMUc3elicYyMIc50517tEvj+IS5z1+quZCFbsaRl6VngL1uqYM3rY/rdbtnOKmAo7CcSwYD/",
+	"pTr4t/JchibCm5Q4w+8bpF+2sdHAfLiPwvNOKwtEH+Xwiwi5o6CPh3vovKouHErCYPZUwuo78YNV9Xg0",
+	"38PwP63SSVL2lZneqqKLZVUj4TRXP4b3Y672qDt97II8XfwwhbwwelOrnE4ED4niwuhC8ZLYSFVj8RS6",
+	"PVasR3j4j0mIZwknG6TQd1f9BMTzxTj/hLlnv/R2e+5kHFsnYNsZ0n+zxf93xVe7K/bb3GT2Xa27sfUd",
+	"lm1AEY3UssSGv+levrv0o0D6Tbrk0I87KGrqaT3w4kX+PPtrAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

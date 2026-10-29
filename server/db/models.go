@@ -13,7 +13,6 @@ type User struct {
 
 type Login struct {
 	Username string
-	Salt string
 	Password string
 }
 

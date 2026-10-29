@@ -13,6 +13,26 @@ tags:
     description: Authentication APIs
 
 paths:
+  /api/auth/register:
+    post:
+      security: []
+      tags:
+        - Auth
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IRegister"
+      responses:
+        "200":
+          description: Success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/auth/login:
     post:
       security: []
@@ -143,6 +163,17 @@ components:
       name: session_id
 
   schemas:
+    IRegister:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
     ILogin:
       type: object
       required:

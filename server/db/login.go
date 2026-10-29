@@ -4,8 +4,8 @@ import "database/sql"
 
 type LoginRepo interface {
 	Select(string) (Login, error)
-	Insert(string, string, string) (bool, error)
-	Update(string, string, string) (bool, error)
+	Insert(string, string) (bool, error)
+	Update(string, string) (bool, error)
 }
 
 type loginRepo struct {
@@ -16,7 +16,7 @@ func newLoginRepo(db *sql.DB) (LoginRepo, error) {
 	ctx, cancel := getStandardContext()
 	defer cancel()
 
-	_, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS login(username TEXT PRIMARY KEY, salt TEXT, password TEXT)")
+	_, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS login(username TEXT PRIMARY KEY, password TEXT)")
 	if err != nil {
 		return nil, err
 	}
@@ -30,20 +30,20 @@ func (h *loginRepo) Select(username string) (Login, error) {
 	defer cancel()
 
 	var ans Login
-	query := "SELECT username, salt, password FROM login WHERE username = $1"
-	err := h.db.QueryRowContext(ctx, query, username).Scan(&ans.Username, &ans.Salt, &ans.Password)
+	query := "SELECT username, password FROM login WHERE username = $1"
+	err := h.db.QueryRowContext(ctx, query, username).Scan(&ans.Username, &ans.Password)
 	if err != nil {
 		return Login{}, err
 	}
 	return ans, nil
 }
 
-func (h *loginRepo) Insert(username string, salt string, password string) (bool, error) {
+func (h *loginRepo) Insert(username string, password string) (bool, error) {
 	ctx, cancel := getStandardContext()
 	defer cancel()
 
-	query := "INSERT INTO login(username, salt, password) VALUES($1, $2, $3)"
-	_, err := h.db.ExecContext(ctx, query, username, salt, password)
+	query := "INSERT INTO login(username, password) VALUES($1, $2)"
+	_, err := h.db.ExecContext(ctx, query, username, password)
 
 	if err != nil {
 		return false, err
@@ -52,12 +52,12 @@ func (h *loginRepo) Insert(username string, salt string, password string) (bool,
 	return true, nil
 }
 
-func (h *loginRepo) Update(username string, salt string, password string) (bool, error) {
+func (h *loginRepo) Update(username string, password string) (bool, error) {
 	ctx, cancel := getStandardContext()
 	defer cancel()
 
-	query := "UPDATE login SET salt = $2, password = $3 WHERE username = $1"
-	_, err := h.db.ExecContext(ctx, query, username, salt, password)
+	query := "UPDATE login SET password = $2 WHERE username = $1"
+	_, err := h.db.ExecContext(ctx, query, username, password)
 
 	if err != nil {
 		return false, err
